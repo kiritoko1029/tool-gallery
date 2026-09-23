@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工具画廊</title>
+  <meta name="description" content="我用 vibecoding 做的工具程序合集" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>" />
+  <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="site-header">
+      <div class="header-row">
+        <div>
+          <div class="eyebrow">Tool Gallery</div>
+          <h1>🛠️ 工具画廊</h1>
+          <p class="subtitle">这里陈列着我用 vibecoding 方式打造的工具程序——每张卡片记录了它由什么 AI 工具和模型塑造。</p>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search-box">
+          <input id="searchInput" type="search" placeholder="搜索名称、简介、标签、工具或模型…" autocomplete="off" />
+        </div>
+        <div class="tag-filter" id="tagFilter"></div>
+      </div>
+    </header>
+
+    <main id="gallery" class="gallery-grid" aria-live="polite"></main>
+
+    <footer class="footer">
+      <span id="footCount"></span>
+      <span>由 tool-gallery 驱动 · AI 可通过 MCP / REST API 维护本画廊</span>
+    </footer>
+  </div>
+
+  <script type="module" src="/assets/app.js"></script>
+</body>
+</html>

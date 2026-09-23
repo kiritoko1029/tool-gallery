@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "tool-gallery": {
+      "command": "node",
+      "args": ["/Users/chenxiangcai/apps/tool-gallary/src/mcp-server.js"],
+      "env": {
+        "GALLERY_DATA_DIR": "/Users/chenxiangcai/apps/tool-gallary/data"
+      }
+    }
+  }
+}
