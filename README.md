@@ -1,5 +1,7 @@
 # Tool Gallery 工具画廊
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/kiritoko1029/tool-gallery)
+
 以卡片形式展示你开发的工具程序，并记录每个工具背后的 **vibecoding 工具、模型、最新版本与版本更新日期**。自带管理后台，并暴露 **MCP server** 与 **skill**，让 AI 代理可以帮你登记、更新、下架工具。
 
 线上实例（Cloudflare Workers 全量部署，含前台 + 后台 + API + MCP）：
@@ -113,7 +115,12 @@ npm run kv:push   # 本地 data/tools.json → 云端 KV
 npm run kv:pull   # 云端 KV → 本地 data/tools.json
 ```
 
-> 说明：曾提供过 README 一键部署按钮（fork + Pages 构建），切换到 Workers + KV 后移除——KV 命名空间 id 是账号专属的，按钮流程无法自动为 fork 者配置。
+**一键部署自己的实例**：点击 README 顶部的 **Deploy to Cloudflare** 按钮。Cloudflare 会克隆本仓库到你的账号、自动创建并绑定新的 KV 命名空间、配好 Workers Builds CI（此后 push 即自动部署）。部署完成后还需为实例设置管理员令牌才能使用后台：
+
+```bash
+git clone <你 fork 出的仓库> && cd tool-gallery
+npx wrangler secret put GALLERY_ADMIN_TOKEN
+```
 
 ## Skill
 
