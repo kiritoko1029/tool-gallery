@@ -1,5 +1,7 @@
 # Tool Gallery 工具画廊
 
+[![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/kiritoko1029/tool-gallery)
+
 以卡片形式展示你开发的工具程序，并记录每个工具背后的 **vibecoding 工具、模型、最新版本与版本更新日期**。自带管理后台，并暴露 **MCP server** 与 **skill**，让 AI 代理可以帮你登记、更新、下架工具。
 
 ## 快速开始
@@ -71,6 +73,23 @@ Kimi Code 的配置（`~/.kimi-code/mcp.json` 或项目级 `.kimi-code/mcp.json`
 
 其他兼容 `.mcp.json` 的客户端（如 Claude Code、Cursor）可参考同名根文件。配置后**新开会话**才会加载该 server；在 TUI 里可用 `/mcp` 查看连接状态。
 
+## 发布到 Cloudflare Pages
+
+画廊前台可以一键发布为静态站点（公开只读快照；后台管理与 MCP 仍在你本地运行）：
+
+```bash
+# 首次：浏览器授权 Cloudflare 账号
+npx wrangler login
+
+# 之后每次发布（自动先构建 dist/，再直接上传部署）
+npm run deploy
+```
+
+- 构建：`npm run build` 把 `public/` 复制到 `dist/`，将 `data/tools.json` 烘焙为 `dist/tools.json`，并把前端请求从 `/api/tools` 改写到 `/tools.json`；后台页面（`admin.html`）不会进入发布产物。
+- 部署：`wrangler pages deploy`（Direct Upload，配置见 `wrangler.toml`），项目名 `tool-gallery`，发布地址为 `https://tool-gallery.pages.dev`。
+- 更新内容后重新 `npm run deploy` 即可覆盖线上版本。
+- 也可以点击 README 顶部的 **Deploy to Cloudflare Pages** 按钮：Cloudflare 会 fork 本仓库并引导创建 Pages 项目，构建设置填 **构建命令 `npm run build`、输出目录 `dist`**。
+
 ## Skill
 
 `skill/SKILL.md` 定义了 AI 维护画廊的规则（查重、版本-日期联动、删除前确认等）。安装到用户技能目录：
@@ -91,7 +110,9 @@ src/server.js       Express：REST API + 令牌鉴权 + 静态页
 src/mcp-server.js   MCP stdio server
 public/             画廊前台 + 管理后台（无构建步骤）
 skill/SKILL.md      AI 操作技能定义
+scripts/build-static.js   静态快照构建（dist/，用于 Cloudflare Pages）
 scripts/install-skill.js
+wrangler.toml       Cloudflare Pages 部署配置
 data/tools.json     数据文件
 .agents/notes/      Agent Notes 开发决策记录
 ```

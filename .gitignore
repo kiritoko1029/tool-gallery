@@ -1,4 +1,5 @@
 node_modules/
+dist/
 data/.admin-token
 .DS_Store
 *.log

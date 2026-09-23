@@ -1,6 +1,6 @@
 {
   "name": "tool-gallery",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "个人工具画廊：卡片式展示自己做的工具程序，带后台管理、MCP 与 skill，方便 AI 协助维护",
   "type": "module",
   "main": "src/server.js",
@@ -8,7 +8,9 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "mcp": "node src/mcp-server.js",
-    "skill:install": "node scripts/install-skill.js"
+    "skill:install": "node scripts/install-skill.js",
+    "build": "node scripts/build-static.js",
+    "deploy": "npm run build && wrangler pages deploy"
   },
   "engines": {
     "node": ">=18"
@@ -18,5 +20,8 @@
     "@modelcontextprotocol/sdk": "^1.18.0",
     "express": "^4.21.2",
     "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.136.3"
   }
 }
