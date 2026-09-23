@@ -1,3 +1,11 @@
 name = "tool-gallery"
-pages_build_output_dir = "dist"
+main = "worker/index.js"
 compatibility_date = "2025-09-01"
+
+# 前台/后台静态页面直接由 Workers 静态资源服务；/api/* 与 /mcp 由 Worker 处理
+[assets]
+directory = "./public"
+
+[[kv_namespaces]]
+binding = "GALLERY_KV"
+id = "a3ef668fde4c41d5ab741449248d2318"

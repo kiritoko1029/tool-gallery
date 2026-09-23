@@ -8,6 +8,8 @@ Status: implemented
 
 ## Decision
 
+> **本决策已于 2026-09-23 被取代**：线上不再使用 Pages 静态快照，改为 Workers 全量部署，见 [Workers 全量部署](../../implemented/architecture/2026-09-23-workers-fullstack-deploy.md)。下文保留作历史记录与替代方案评估。
+
 采用**静态快照发布**：`scripts/build-static.js`（`npm run build`）把 `public/` 复制到 `dist/`，用 `src/store.js` 读出数据烘焙为 `dist/tools.json`，并把前端数据请求从 `/api/tools` 改写为 `/tools.json`；后台页面 `admin.html`/`admin.js` 不进入产物。部署用 wrangler Direct Upload：`npm run deploy` = 构建 + `wrangler pages deploy`（配置在 `wrangler.toml`，项目名 `tool-gallery`）。README 顶部放置 Cloudflare 官方 Deploy 按钮（fork 仓库 + Pages 构建流程，构建命令 `npm run build`、输出目录 `dist`）。线上站点是只读快照；管理后台、REST API、MCP 始终只在本地运行，内容更新流程为"本地改动 → 重新 `npm run deploy`"。`dist/` 不入 git。
 
 ## Alternatives considered

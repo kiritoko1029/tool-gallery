@@ -6,7 +6,7 @@
       "name": "Tool Gallery 工具画廊",
       "description": "以卡片形式展示个人开发的工具程序：记录每个工具背后的 vibecoding 工具、模型与版本信息，并暴露 MCP 与 REST API 让 AI 代理直接维护画廊内容。",
       "githubUrl": "https://github.com/kiritoko1029/tool-gallery",
-      "link": "https://tool-gallery.1794130477.workers.dev",
+      "link": "https://tool-gallery.pages.dev",
       "icon": "🛠️",
       "tags": [
         "web",
@@ -15,7 +15,7 @@
       ],
       "vibeCodingTool": "Kimi Code",
       "model": "kimi-k3",
-      "version": "1.2.0",
+      "version": "1.1.0",
       "versionUpdatedAt": "2026-09-23",
       "createdAt": "2026-09-23T15:30:00.000Z",
       "updatedAt": "2026-09-23T15:30:00.000Z"

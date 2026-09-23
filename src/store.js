@@ -1,7 +1,17 @@
+// 文件存储后端：data/tools.json，原子写 + mtime 感知缓存 + 进程内写队列。
+// 业务规则（校验、版本-日期联动等）在 tools-core.js，与 Worker 的 KV 后端共享。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { z } from 'zod';
+import {
+  toolInputSchema,
+  toolPatchSchema,
+  buildNewTool,
+  applyToolPatch,
+  filterTools,
+  computeTags,
+  summarizeTools,
+} from './tools-core.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..');
@@ -10,34 +20,8 @@ export const DATA_DIR = process.env.GALLERY_DATA_DIR
   : path.join(PROJECT_ROOT, 'data');
 export const DATA_FILE = path.join(DATA_DIR, 'tools.json');
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-const emptyToUndef = (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
-
-export const toolInputSchema = z.object({
-  name: z.string().trim().min(1, 'name 不能为空'),
-  description: z.string().trim().min(1, 'description 不能为空'),
-  githubUrl: z.preprocess(emptyToUndef, z.string().url('githubUrl 必须是合法 URL').optional()),
-  link: z.preprocess(emptyToUndef, z.string().url('link 必须是合法 URL').optional()),
-  icon: z.preprocess(emptyToUndef, z.string().trim().max(8).optional()),
-  tags: z.array(z.string().trim().min(1)).max(12).optional(),
-  vibeCodingTool: z.preprocess(emptyToUndef, z.string().trim().max(60).optional()),
-  model: z.preprocess(emptyToUndef, z.string().trim().max(60).optional()),
-  version: z.preprocess(emptyToUndef, z.string().trim().max(40).optional()),
-  versionUpdatedAt: z.preprocess(
-    emptyToUndef,
-    z.string().regex(DATE_RE, 'versionUpdatedAt 必须是 YYYY-MM-DD 格式').optional()
-  ),
-});
-
-export const toolPatchSchema = toolInputSchema.partial();
-
 let cache = null; // { mtimeMs, tools: Map<id, tool> }
 let writeQueue = Promise.resolve();
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -71,49 +55,16 @@ function persist(tools) {
 }
 
 function withLock(fn) {
-  // 队列串行化写操作；每次取当前磁快照的副本，避免失败时污染缓存
+  // 队列串行化写操作；每次取当前磁盘快照的副本，避免失败时污染缓存
   const run = writeQueue.then(() => fn(new Map(load().tools)));
   writeQueue = run.catch(() => {});
   return run;
 }
 
-function slugify(name) {
-  const base = name
-    .toLowerCase()
-    .replace(/[^a-z0-9一-鿿]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48);
-  return base || 'tool';
-}
-
-function uniqueId(name, tools) {
-  const base = slugify(name);
-  if (!tools.has(base)) return base;
-  for (let i = 2; ; i++) {
-    const candidate = `${base}-${i}`;
-    if (!tools.has(candidate)) return candidate;
-  }
-}
-
-function normalizeTags(tags) {
-  if (!tags) return undefined;
-  const deduped = [...new Set(tags.map((t) => t.trim()).filter(Boolean))];
-  return deduped.length ? deduped : undefined;
-}
+// ---- 同步 API（本地 Express 服务使用）----
 
 export function listTools({ query, tag } = {}) {
-  const { tools } = load();
-  let all = [...tools.values()];
-  if (tag) all = all.filter((t) => (t.tags ?? []).includes(tag));
-  if (query) {
-    const q = query.toLowerCase();
-    all = all.filter((t) =>
-      [t.name, t.description, t.vibeCodingTool, t.model, ...(t.tags ?? [])]
-        .filter(Boolean)
-        .some((s) => s.toLowerCase().includes(q))
-    );
-  }
-  return all.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+  return filterTools([...load().tools.values()], { query, tag });
 }
 
 export function getTool(id) {
@@ -121,24 +72,17 @@ export function getTool(id) {
 }
 
 export function listTags() {
-  const counts = new Map();
-  for (const t of load().tools.values()) {
-    for (const tag of t.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-  }
-  return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+  return computeTags([...load().tools.values()]);
+}
+
+export function summarize() {
+  return summarizeTools([...load().tools.values()]);
 }
 
 export function createTool(input) {
   const data = toolInputSchema.parse(input);
   return withLock((tools) => {
-    const now = new Date().toISOString();
-    const tool = {
-      id: uniqueId(data.name, tools),
-      ...data,
-      tags: normalizeTags(data.tags),
-      createdAt: now,
-      updatedAt: now,
-    };
+    const tool = buildNewTool(data, new Set(tools.keys()));
     tools.set(tool.id, tool);
     persist(tools);
     return tool;
@@ -150,16 +94,7 @@ export function updateTool(id, patch) {
   return withLock((tools) => {
     const existing = tools.get(id);
     if (!existing) return null;
-    const next = { ...existing };
-    for (const [key, value] of Object.entries(data)) {
-      if (value === undefined) continue;
-      next[key] = key === 'tags' ? normalizeTags(value) : value;
-    }
-    // 版本号变化但调用方没给日期时，自动把版本更新日期刷成今天
-    if (data.version && data.version !== existing.version && data.versionUpdatedAt === undefined) {
-      next.versionUpdatedAt = today();
-    }
-    next.updatedAt = new Date().toISOString();
+    const next = applyToolPatch(existing, data);
     tools.set(id, next);
     persist(tools);
     return next;
@@ -187,11 +122,28 @@ export function clearField(id, field) {
   });
 }
 
-export function summarize() {
-  const tools = [...load().tools.values()];
-  return {
-    count: tools.length,
-    tags: listTags(),
-    latestUpdate: tools.map((t) => t.updatedAt).sort().at(-1) ?? null,
-  };
-}
+// ---- 异步存储接口（MCP 工具层使用；与 worker/kv-store.js 同构）----
+
+export const fileStore = {
+  async list(options) {
+    return listTools(options);
+  },
+  async get(id) {
+    return getTool(id);
+  },
+  async create(input) {
+    return createTool(input);
+  },
+  async update(id, patch) {
+    return updateTool(id, patch);
+  },
+  async clearField(id, field) {
+    return clearField(id, field);
+  },
+  async remove(id) {
+    return deleteTool(id);
+  },
+  async summary() {
+    return summarize();
+  },
+};

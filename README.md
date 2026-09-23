@@ -1,10 +1,14 @@
 # Tool Gallery 工具画廊
 
-[![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/kiritoko1029/tool-gallery)
-
 以卡片形式展示你开发的工具程序，并记录每个工具背后的 **vibecoding 工具、模型、最新版本与版本更新日期**。自带管理后台，并暴露 **MCP server** 与 **skill**，让 AI 代理可以帮你登记、更新、下架工具。
 
-## 快速开始
+线上实例（Cloudflare Workers 全量部署，含前台 + 后台 + API + MCP）：
+
+- 画廊：https://tool-gallery.1794130477.workers.dev
+- 管理后台：https://tool-gallery.1794130477.workers.dev/admin
+- MCP 端点：`https://tool-gallery.1794130477.workers.dev/mcp`
+
+## 本地运行
 
 ```bash
 npm install
@@ -14,7 +18,7 @@ npm start
 - 画廊：<http://localhost:3927>
 - 后台：<http://localhost:3927/admin>
 
-首次启动会自动生成管理员令牌并打印在终端，同时保存到 `data/.admin-token`（权限 0600）。也可以用环境变量覆盖：
+本地首次启动会自动生成管理员令牌并打印在终端，同时保存到 `data/.admin-token`（权限 0600）。也可以用环境变量覆盖：
 
 ```bash
 PORT=8080 GALLERY_ADMIN_TOKEN=my-secret npm start
@@ -22,7 +26,7 @@ PORT=8080 GALLERY_ADMIN_TOKEN=my-secret npm start
 
 ## 数据
 
-所有数据存放在 `data/tools.json`（原子写入，外部直接修改也会被服务自动感知）。字段：
+本地数据存放在 `data/tools.json`（原子写入，外部直接修改也会被服务自动感知）；云端数据存放在 Cloudflare KV（key 为 `tools`，值结构与该文件相同，可互相同步）。字段：
 
 | 字段 | 必填 | 说明 |
 |---|---|---|
@@ -41,7 +45,7 @@ PORT=8080 GALLERY_ADMIN_TOKEN=my-secret npm start
 
 ## REST API
 
-公开读、令牌写（`Authorization: Bearer <token>`）：
+本地与云端行为一致。公开读、令牌写（`Authorization: Bearer <token>`）：
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
@@ -55,9 +59,9 @@ PORT=8080 GALLERY_ADMIN_TOKEN=my-secret npm start
 
 ## MCP server
 
-工具：`gallery_list_tools`、`gallery_get_tool`、`gallery_add_tool`、`gallery_update_tool`、`gallery_remove_tool`、`gallery_summary`。MCP 直接读写 `data/tools.json`，不要求 Web 服务在线。
+工具：`gallery_list_tools`、`gallery_get_tool`、`gallery_summary`（公开读）；`gallery_add_tool`、`gallery_update_tool`、`gallery_remove_tool`（🔒 需要令牌）。两种接入方式：
 
-Kimi Code 的配置（`~/.kimi-code/mcp.json` 或项目级 `.kimi-code/mcp.json`）——本仓库已自带项目级配置，并已在构建时写入用户级配置：
+**本地 stdio**（直接读写 `data/tools.json`，不要求 Web 服务在线）——本仓库已自带项目级 `.kimi-code/mcp.json`：
 
 ```json
 {
@@ -71,28 +75,49 @@ Kimi Code 的配置（`~/.kimi-code/mcp.json` 或项目级 `.kimi-code/mcp.json`
 }
 ```
 
-其他兼容 `.mcp.json` 的客户端（如 Claude Code、Cursor）可参考同名根文件。配置后**新开会话**才会加载该 server；在 TUI 里可用 `/mcp` 查看连接状态。
+**云端 HTTP**（操作线上画廊，无状态 Streamable HTTP）：
 
-## 发布到 Cloudflare Pages
+```json
+{
+  "mcpServers": {
+    "tool-gallery-cloud": {
+      "url": "https://tool-gallery.1794130477.workers.dev/mcp",
+      "headers": { "Authorization": "Bearer <管理员令牌>" }
+    }
+  }
+}
+```
 
-画廊前台可以一键发布为静态站点（公开只读快照；后台管理与 MCP 仍在你本地运行）：
+配置后**新开会话**才会加载；Kimi Code 里用 `/mcp` 查看连接状态。不带令牌连接时只能使用只读工具。
+
+## 部署到 Cloudflare（Workers）
+
+前台、后台、REST API、MCP 全部跑在一个 Worker 上，数据存 KV：
 
 ```bash
 # 首次：浏览器授权 Cloudflare 账号
 npx wrangler login
 
-# 之后每次发布（自动先构建 dist/，再直接上传部署）
-npm run deploy
+# 首次还需：创建 KV 命名空间并把 id 填入 wrangler.toml，配置管理员令牌
+npx wrangler kv namespace create GALLERY_KV
+npx wrangler secret put GALLERY_ADMIN_TOKEN   # 建议与本地 data/.admin-token 保持一致
+
+# 每次发布代码
+npm run deploy          # = wrangler deploy
 ```
 
-- 构建：`npm run build` 把 `public/` 复制到 `dist/`，将 `data/tools.json` 烘焙为 `dist/tools.json`，并把前端请求从 `/api/tools` 改写到 `/tools.json`；后台页面（`admin.html`）不会进入发布产物。
-- 部署：`wrangler pages deploy`（Direct Upload，配置见 `wrangler.toml`），项目名 `tool-gallery`，发布地址为 `https://tool-gallery.pages.dev`。
-- 更新内容后重新 `npm run deploy` 即可覆盖线上版本。
-- 也可以点击 README 顶部的 **Deploy to Cloudflare Pages** 按钮：Cloudflare 会 fork 本仓库并引导创建 Pages 项目，构建设置填 **构建命令 `npm run build`、输出目录 `dist`**。
+数据同步（本地 ⇄ 云端，双向覆盖式，谨慎使用）：
+
+```bash
+npm run kv:push   # 本地 data/tools.json → 云端 KV
+npm run kv:pull   # 云端 KV → 本地 data/tools.json
+```
+
+> 说明：曾提供过 README 一键部署按钮（fork + Pages 构建），切换到 Workers + KV 后移除——KV 命名空间 id 是账号专属的，按钮流程无法自动为 fork 者配置。
 
 ## Skill
 
-`skill/SKILL.md` 定义了 AI 维护画廊的规则（查重、版本-日期联动、删除前确认等）。安装到用户技能目录：
+`skill/SKILL.md` 定义了 AI 维护画廊的规则（查重、版本-日期联动、删除前确认、本地/云端通道选择等）。安装到用户技能目录：
 
 ```bash
 npm run skill:install   # 复制到 ~/.agents/skills/tool-gallery/
@@ -105,14 +130,17 @@ npm run skill:install   # 复制到 ~/.agents/skills/tool-gallery/
 ## 结构
 
 ```
-src/store.js        数据层：JSON 存储、原子写、zod 校验、版本-日期联动
-src/server.js       Express：REST API + 令牌鉴权 + 静态页
-src/mcp-server.js   MCP stdio server
+src/tools-core.js   纯逻辑：zod 校验、过滤、版本-日期联动（双端共享）
+src/store.js        本地文件存储（JSON 原子写 + mtime 缓存 + 写队列）
+src/mcp-tools.js    MCP 工具定义与 JSON-RPC 分发（stdio 与 HTTP 共享）
+src/server.js       本地 Express：REST API + 令牌鉴权 + 静态页
+src/mcp-server.js   本地 MCP stdio server
+worker/index.js     Cloudflare Worker：API + /mcp + 静态资源路由
+worker/kv-store.js  KV 存储后端（与 fileStore 同接口）
 public/             画廊前台 + 管理后台（无构建步骤）
 skill/SKILL.md      AI 操作技能定义
-scripts/build-static.js   静态快照构建（dist/，用于 Cloudflare Pages）
 scripts/install-skill.js
-wrangler.toml       Cloudflare Pages 部署配置
-data/tools.json     数据文件
+wrangler.toml       Cloudflare Workers + KV 配置
+data/tools.json     本地数据文件
 .agents/notes/      Agent Notes 开发决策记录
 ```

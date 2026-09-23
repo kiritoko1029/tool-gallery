@@ -5,13 +5,20 @@ description: 维护用户的个人工具画廊（Tool Gallery，位于 ~/apps/to
 
 # Tool Gallery
 
-用户的个人工具画廊：以卡片形式展示他自己开发的工具程序。本项目位于 `~/apps/tool-gallary`，数据在 `~/apps/tool-gallary/data/tools.json`，Web 服务默认端口 `3927`（画廊 `/`，后台 `/admin`）。
+用户的个人工具画廊：以卡片形式展示他自己开发的工具程序。本项目位于 `~/apps/tool-gallary`。
+
+两个运行实例：
+
+- **本地实例**：数据在 `~/apps/tool-gallary/data/tools.json`，Web 服务默认端口 `3927`（画廊 `/`，后台 `/admin`）。
+- **云端实例**（Cloudflare Workers）：`https://tool-gallery.1794130477.workers.dev`，后台在 `/admin`，MCP 端点在 `/mcp`，数据存 Cloudflare KV。
+
+用户说"画廊"时如果上下文是关于线上网站、访问者能看到的内容，操作云端实例；关于本地开发/调试时操作本地实例。不确定时先问。
 
 ## 操作方式（按优先级）
 
-1. **MCP server `tool-gallery`**（首选，若已连接）：使用 `gallery_list_tools`、`gallery_get_tool`、`gallery_add_tool`、`gallery_update_tool`、`gallery_remove_tool`、`gallery_summary`。MCP 直接读写数据文件，不要求 Web 服务在线。
-2. **REST API**（要求 Web 服务已启动）：`GET /api/tools`、`POST /api/tools`、`PUT /api/tools/:id`、`DELETE /api/tools/:id`；写操作需请求头 `Authorization: Bearer <token>`，令牌在 `~/apps/tool-gallary/data/.admin-token`（读取该文件后即可使用，不要展示给用户以外的人）。
-3. **直接编辑 `data/tools.json`**：仅在以上方式不可用时。保持 JSON 结构 `{ "version": 1, "tools": [...] }`，保存后 Web 服务会自动感知文件变更，无需重启。
+1. **MCP server**（首选，若已连接）：本地 stdio `tool-gallery` 或云端 HTTP `tool-gallery-cloud`，均提供 `gallery_list_tools`、`gallery_get_tool`、`gallery_add_tool`、`gallery_update_tool`、`gallery_remove_tool`、`gallery_summary`。本地 MCP 直接读写数据文件，不要求 Web 服务在线；云端 MCP 的读工具公开、写工具需要令牌（配置里已带）。
+2. **REST API**（本地要求 Web 服务已启动；云端随时可用）：`GET /api/tools`、`POST /api/tools`、`PUT /api/tools/:id`、`DELETE /api/tools/:id`；写操作需请求头 `Authorization: Bearer <token>`，令牌在 `~/apps/tool-gallary/data/.admin-token`（本地与云端相同；读取后使用，不要泄露）。
+3. **直接编辑 `data/tools.json`**（仅本地实例、以上方式不可用时）：保持 JSON 结构 `{ "version": 1, "tools": [...] }`，保存后 Web 服务会自动感知文件变更，无需重启。
 
 ## 数据字段
 
@@ -38,3 +45,4 @@ description: 维护用户的个人工具画廊（Tool Gallery，位于 ~/apps/to
 - `gallery_remove_tool` / `DELETE` 不可恢复，执行前必须向用户确认。
 - 用户没提供 `vibeCodingTool` 或 `model` 时，若本次就是你在协助开发，可填入当前工具与你自己的模型名；否则留空，不要编造。
 - `githubUrl` 必须是合法 URL；没有仓库就省略该字段，不要填空字符串以外的占位符。
+- **本地与云端数据相互独立**：本地改动后如需上线，用 `npm run kv:push` 推送数据（代码改动用 `npm run deploy`）；云端后台/云端 MCP 的改动不会自动回流本地，需要时用 `npm run kv:pull` 拉回来。

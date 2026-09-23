@@ -1,6 +1,6 @@
 {
   "name": "tool-gallery",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "个人工具画廊：卡片式展示自己做的工具程序，带后台管理、MCP 与 skill，方便 AI 协助维护",
   "type": "module",
   "main": "src/server.js",
@@ -9,8 +9,9 @@
     "dev": "node --watch src/server.js",
     "mcp": "node src/mcp-server.js",
     "skill:install": "node scripts/install-skill.js",
-    "build": "node scripts/build-static.js",
-    "deploy": "npm run build && wrangler pages deploy"
+    "deploy": "wrangler deploy",
+    "kv:push": "wrangler kv key put --binding GALLERY_KV tools --path data/tools.json --remote",
+    "kv:pull": "wrangler kv key get --binding GALLERY_KV tools --remote > data/tools.json"
   },
   "engines": {
     "node": ">=18"
