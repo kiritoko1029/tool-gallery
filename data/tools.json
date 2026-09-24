@@ -86,23 +86,6 @@
       "updatedAt": "2026-09-24T02:00:00.000Z"
     },
     {
-      "id": "ai-week-log",
-      "name": "ai-week-log",
-      "description": "Git 周报/日报桌面客户端：读取本地仓库提交日志，融合会议、沟通等人工笔记，AI 自动生成结构化工作总结。",
-      "githubUrl": "https://github.com/kiritoko1029/ai-week-log",
-      "icon": "📝",
-      "tags": [
-        "rust",
-        "ai",
-        "周报",
-        "桌面端"
-      ],
-      "version": "1.4.1",
-      "versionUpdatedAt": "2026-07-01",
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
       "id": "my-herness-skill",
       "name": "my-herness-skill",
       "description": "Claude Code 多智能体开发工作流插件：5 个协作 Agent + 4 个编排 Skill，从需求到代码的全流程自动化。",
@@ -112,63 +95,6 @@
         "claude-code",
         "插件",
         "多智能体"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "neatchat-plus",
-      "name": "NeatChat-Plus",
-      "description": "在 NextChat / NeatChat 基础上修改增强的 AI 聊天客户端，持续同步上游更新。",
-      "githubUrl": "https://github.com/kiritoko1029/NeatChat-Plus",
-      "icon": "💬",
-      "tags": [
-        "ai",
-        "聊天",
-        "pwa"
-      ],
-      "version": "1.2.0-061200",
-      "versionUpdatedAt": "2025-06-12",
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "code-arch-viewer",
-      "name": "code-arch-viewer",
-      "description": "代码架构可视化查看器，帮助快速理解项目结构。",
-      "githubUrl": "https://github.com/kiritoko1029/code-arch-viewer",
-      "icon": "🗺️",
-      "tags": [
-        "可视化",
-        "架构"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "opencode-add-oai-instruction",
-      "name": "opencode-add-oai-instruction",
-      "description": "OpenCode 插件：按模型向 OpenAI 兼容 API 请求注入 instructions 指令，并移除 gpt* 模型的 max_tokens 字段以兼容部分服务商。",
-      "githubUrl": "https://github.com/kiritoko1029/opencode-add-oai-instruction",
-      "icon": "🔌",
-      "tags": [
-        "opencode",
-        "插件",
-        "ai"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "statusline-node",
-      "name": "statusLine-node",
-      "description": "为 Claude Code 打造的高性能、可自定义状态栏工具。",
-      "githubUrl": "https://github.com/kiritoko1029/statusLine-node",
-      "icon": "📊",
-      "tags": [
-        "claude-code",
-        "状态栏",
-        "cli"
       ],
       "createdAt": "2026-09-24T02:00:00.000Z",
       "updatedAt": "2026-09-24T02:00:00.000Z"
@@ -204,184 +130,22 @@
       "updatedAt": "2026-09-24T02:00:00.000Z"
     },
     {
-      "id": "share-room",
-      "name": "share-room",
-      "description": "基于 WebRTC 的网页视频聊天室：多人实时音视频通话、屏幕共享（可调分辨率/帧率/码率）与文字聊天。",
-      "githubUrl": "https://github.com/kiritoko1029/share-room",
-      "icon": "📹",
+      "id": "net-redirect",
+      "name": "net-redirect",
+      "description": "系统级 TCP 流量重定向工具（macOS / Windows，Tauri 2 桌面应用）：把访问特定 IP:端口的系统流量透明转发到另一地址，项目零配置改动；内置 SSH 隧道（等效 ssh -L），回环目标自动直通模式零代理开销，可替代 XTerminal 做本地端口转发。",
+      "githubUrl": "https://github.com/kiritoko1029/net-redirect",
+      "icon": "🔀",
       "tags": [
-        "webrtc",
-        "视频",
-        "聊天室"
+        "rust",
+        "tauri",
+        "网络",
+        "端口转发",
+        "桌面端"
       ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "cc-plugin-marketplace",
-      "name": "cc-plugin-marketplace",
-      "description": "Claude Code 插件市场仓库：/plugin marketplace add kiritoko1029/cc-plugin-marketplace 一键添加。",
-      "githubUrl": "https://github.com/kiritoko1029/cc-plugin-marketplace",
-      "icon": "🏪",
-      "tags": [
-        "claude-code",
-        "插件"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "api-helper-crx",
-      "name": "API-Helper-crx",
-      "description": "浏览器扩展：实时监听网页的 fetch/XHR 网络请求，自动生成结构化 API 文档。",
-      "githubUrl": "https://github.com/kiritoko1029/API-Helper-crx",
-      "icon": "📄",
-      "tags": [
-        "浏览器扩展",
-        "api",
-        "文档"
-      ],
-      "version": "0.1",
-      "versionUpdatedAt": "2025-10-27",
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "cursor-longtoken",
-      "name": "cursor-longtoken",
-      "description": "获取 Cursor 长效访问令牌的 Web 服务：Selenium 自动化，支持 Docker 部署与 JSON/TXT/.env 多格式导出。",
-      "githubUrl": "https://github.com/kiritoko1029/cursor-longtoken",
-      "icon": "🔑",
-      "tags": [
-        "cursor",
-        "web",
-        "docker"
-      ],
-      "version": "1.0.0",
-      "versionUpdatedAt": "2025-05-15",
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "vscode-i18n-plugin",
-      "name": "vscode-i18n-plugin",
-      "description": "VSCode 插件：让 i18n 翻译键值在代码中内联实时显示对应译文。",
-      "githubUrl": "https://github.com/kiritoko1029/vscode-i18n-plugin",
-      "icon": "🌍",
-      "tags": [
-        "vscode",
-        "i18n",
-        "扩展"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "temp-mail",
-      "name": "temp-mail",
-      "description": "临时邮箱查看器：基于 TempMail.plus API，邮件列表/详情/自动刷新，响应式界面适配移动端。",
-      "githubUrl": "https://github.com/kiritoko1029/temp-mail",
-      "icon": "📮",
-      "tags": [
-        "邮箱",
-        "web"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "rtlog",
-      "name": "RtLog",
-      "description": "实时日志查看器：拦截 Spring Boot 后台的 stdout/stderr 输出并实时展示在前端页面，可嵌入项目也可独立部署。",
-      "githubUrl": "https://github.com/kiritoko1029/RtLog",
-      "icon": "📜",
-      "tags": [
-        "java",
-        "日志",
-        "spring-boot"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "ez2api-spring-boot-starter",
-      "name": "ez2api-spring-boot-starter",
-      "description": "Spring Boot Starter 脚手架：快速将服务暴露为 API 接口。",
-      "githubUrl": "https://github.com/kiritoko1029/ez2api-spring-boot-starter",
-      "icon": "🚀",
-      "tags": [
-        "java",
-        "spring-boot"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "dynamicdatasourcecontrolpanel",
-      "name": "dynamicDataSourceControlPanel",
-      "description": "动态数据源控制台：Web 控制台与查询接口，动态控制多数据源（仅查询，面向开发者）。",
-      "githubUrl": "https://github.com/kiritoko1029/dynamicDataSourceControlPanel",
-      "icon": "🗄️",
-      "tags": [
-        "java",
-        "数据源",
-        "web"
-      ],
-      "version": "1.0",
-      "versionUpdatedAt": "2022-05-17",
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "baowumoccans-chromeextension",
-      "name": "BaoWuMoccAns-ChromeExtension",
-      "description": "宝武慕课答案获取 Chrome 浏览器插件。",
-      "githubUrl": "https://github.com/kiritoko1029/BaoWuMoccAns-ChromeExtension",
-      "icon": "🎓",
-      "tags": [
-        "chrome扩展"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "file-server",
-      "name": "file-server",
-      "description": "把本地目录映射为文件服务器（Java）。",
-      "githubUrl": "https://github.com/kiritoko1029/file-server",
-      "icon": "📂",
-      "tags": [
-        "java",
-        "文件"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "dynamicdatasource-frontend",
-      "name": "dynamicDatasource-frontend",
-      "description": "动态数据源管理控制台前端（Vue）。",
-      "githubUrl": "https://github.com/kiritoko1029/dynamicDatasource-frontend",
-      "icon": "🖥️",
-      "tags": [
-        "vue",
-        "数据源"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
-    },
-    {
-      "id": "catchhtml",
-      "name": "CatchHTML",
-      "description": "使用 Java htmlunit 的网络爬虫示例：在百度资讯按「银行+关键词」统计各年份数据条数，输出 JSON 到文件。",
-      "githubUrl": "https://github.com/kiritoko1029/CatchHTML",
-      "icon": "🕸️",
-      "tags": [
-        "java",
-        "爬虫"
-      ],
-      "createdAt": "2026-09-24T02:00:00.000Z",
-      "updatedAt": "2026-09-24T02:00:00.000Z"
+      "version": "0.7.4",
+      "versionUpdatedAt": "2026-09-23",
+      "createdAt": "2026-09-24T08:30:00.000Z",
+      "updatedAt": "2026-09-24T08:30:00.000Z"
     }
   ]
 }
