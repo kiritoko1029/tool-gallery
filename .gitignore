@@ -2,6 +2,7 @@ node_modules/
 dist/
 .wrangler/
 data/.admin-token
+data/settings.json
 data/covers/
 .DS_Store
 *.log

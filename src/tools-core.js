@@ -7,7 +7,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // 封面允许两种来源：外部图片链接，或本站对象存储路径（本地 data/covers / 云端 R2）
 const COVER_RE = /^(https?:\/\/.+|\/covers\/[\w.-]+)$/;
 
-const emptyToUndef = (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
+export const emptyToUndef = (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 
 export const toolInputSchema = z.object({
   name: z.string().trim().min(1, 'name 不能为空'),

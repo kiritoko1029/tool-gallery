@@ -11,7 +11,22 @@ import {
   fetchImageBytes,
   buildCoverPrompt,
   generateCoverImage,
+  resolveAiConfig,
+  aiSettingsSchema,
+  applySettingsPatch,
+  settingsViewOf,
 } from '../src/cover-core.js';
+
+// 设置存 KV 的独立 key，与工具数据（'tools'）隔离
+const SETTINGS_KEY = 'settings';
+
+async function getSettings(env) {
+  return (await env.GALLERY_KV.get(SETTINGS_KEY, 'json')) ?? {};
+}
+
+async function putSettings(env, settings) {
+  await env.GALLERY_KV.put(SETTINGS_KEY, JSON.stringify(settings));
+}
 
 const CLEARABLE_FIELDS = [
   'githubUrl',
@@ -99,7 +114,24 @@ async function handleApi(request, env, url) {
   if (method === 'POST' && path === '/api/auth/check') return json({ ok: true });
 
   if (method === 'GET' && path === '/api/features') {
-    return json({ aiCover: Boolean(env.OPENAI_API_KEY) });
+    const settings = await getSettings(env);
+    return json({ aiCover: Boolean(resolveAiConfig(settings, (k) => env[k]).apiKey) });
+  }
+
+  // 后台设置（AI 配置）：密钥只写不读，读取返回脱敏视图
+  if (method === 'GET' && path === '/api/settings') {
+    return json(settingsViewOf(await getSettings(env)));
+  }
+  if (method === 'PUT' && path === '/api/settings') {
+    try {
+      const data = aiSettingsSchema.parse(await readBody(request));
+      const next = applySettingsPatch(await getSettings(env), data);
+      await putSettings(env, next);
+      return json(settingsViewOf(next));
+    } catch (err) {
+      if (err instanceof ZodError) return zodFailure(err);
+      throw err;
+    }
   }
 
   // 外链图片代理（后台裁剪外部图片时绕过浏览器 CORS）
@@ -121,20 +153,14 @@ async function handleApi(request, env, url) {
       return json({ cover: await saveCover(env, material) }, 201);
     }
     if (method === 'POST' && path === '/api/covers/generate') {
-      if (!env.OPENAI_API_KEY) {
-        return json({ error: '未配置 OPENAI_API_KEY（npx wrangler secret put OPENAI_API_KEY）' }, 503);
+      const settings = await getSettings(env);
+      const ai = resolveAiConfig(settings, (k) => env[k]);
+      if (!ai.apiKey) {
+        return json({ error: '未配置 OpenAI API Key：可在后台「设置」中配置，或 npx wrangler secret put OPENAI_API_KEY' }, 503);
       }
       const body = await readBody(request);
       const prompt = buildCoverPrompt(body);
-      const image = await generateCoverImage(
-        {
-          apiKey: env.OPENAI_API_KEY,
-          baseUrl: env.OPENAI_BASE_URL,
-          model: env.OPENAI_IMAGE_MODEL,
-          quality: env.OPENAI_IMAGE_QUALITY,
-        },
-        prompt
-      );
+      const image = await generateCoverImage(ai, prompt);
       return json({ cover: await saveCover(env, image), prompt }, 201);
     }
     if (method === 'POST' && path === '/api/tools') {

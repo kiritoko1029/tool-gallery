@@ -108,13 +108,13 @@ PORT=8080 GALLERY_ADMIN_TOKEN=my-secret npm start
 
 三种来源都可以再**手动裁剪**（拖拽平移 + 缩放，导出 1600×900 WebP）。
 
-AI 生成需要配置 OpenAI 密钥，未配置时后台的「AI 生成」按钮会提示不可用：
+AI 生成需要在**后台右上角「设置」**里配置 OpenAI API Key（可一并设置 Base URL 代理端点、模型、生成质量）。密钥只写不读——保存后界面只显示脱敏尾号；页面配置优先于环境变量。也可以用环境变量兜底：
 
 ```bash
 # 本地
 export OPENAI_API_KEY=sk-...          # 可选：OPENAI_BASE_URL / OPENAI_IMAGE_MODEL / OPENAI_IMAGE_QUALITY
 
-# 云端
+# 云端（页面配置不可用时的兜底）
 npx wrangler secret put OPENAI_API_KEY
 ```
 

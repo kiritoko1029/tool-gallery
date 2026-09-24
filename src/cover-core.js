@@ -2,6 +2,9 @@
 // 同时被本地 Express（src/server.js）与 Cloudflare Worker（worker/index.js）使用。
 // 只用 Web 标准 API（fetch / atob / crypto），不依赖 Node 内置模块。
 
+import { z } from 'zod';
+import { emptyToUndef } from './tools-core.js';
+
 const IMAGE_EXT = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -11,6 +14,65 @@ const IMAGE_EXT = {
 };
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+// ---- AI 设置（后台可配置）----
+
+export const aiSettingsSchema = z.object({
+  openaiApiKey: z.string().trim().max(200).nullable().optional(), // null = 清除
+  openaiBaseUrl: z.preprocess(
+    emptyToUndef,
+    z.string().url('baseUrl 必须是合法 URL').max(200).nullable().optional()
+  ),
+  openaiImageModel: z.preprocess(emptyToUndef, z.string().trim().max(60).nullable().optional()),
+  openaiImageQuality: z.enum(['low', 'medium', 'high']).nullable().optional(),
+});
+
+// 页面配置优先，环境变量兜底
+export function resolveAiConfig(settings = {}, env = {}) {
+  const envOf = (e) => (typeof e === 'function' ? e : (k) => e[k]);
+  const get = envOf(env);
+  return {
+    apiKey: settings.openaiApiKey || get('OPENAI_API_KEY') || undefined,
+    baseUrl: settings.openaiBaseUrl || get('OPENAI_BASE_URL') || undefined,
+    model: settings.openaiImageModel || get('OPENAI_IMAGE_MODEL') || undefined,
+    quality: settings.openaiImageQuality || get('OPENAI_IMAGE_QUALITY') || undefined,
+  };
+}
+
+// 密钥只写不读：读取时脱敏，永不返回完整值
+export function maskApiKey(key) {
+  if (!key) return null;
+  const tail = key.slice(-4);
+  return `••••${tail}`;
+}
+
+// 设置 patch 语义（纯函数，双端存储共用）：
+// openaiApiKey 非空=替换、null/空串=清除、缺省=不动；其余字段 null/空串=清除、缺省=不动
+export function applySettingsPatch(current, data) {
+  const next = { ...current };
+  if (data.openaiApiKey !== undefined) {
+    if (data.openaiApiKey === null || data.openaiApiKey === '') delete next.openaiApiKey;
+    else next.openaiApiKey = data.openaiApiKey;
+  }
+  for (const key of ['openaiBaseUrl', 'openaiImageModel', 'openaiImageQuality']) {
+    if (data[key] !== undefined) {
+      if (data[key] === null) delete next[key];
+      else next[key] = data[key];
+    }
+  }
+  return next;
+}
+
+// 脱敏视图：给后台 UI 用，不含完整密钥
+export function settingsViewOf(s) {
+  return {
+    openaiApiKeySet: Boolean(s.openaiApiKey),
+    openaiApiKeyPreview: maskApiKey(s.openaiApiKey),
+    openaiBaseUrl: s.openaiBaseUrl ?? null,
+    openaiImageModel: s.openaiImageModel ?? null,
+    openaiImageQuality: s.openaiImageQuality ?? null,
+  };
+}
 
 export class CoverError extends Error {}
 

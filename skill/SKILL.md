@@ -43,7 +43,7 @@ description: 维护用户的个人工具集（Toolset，项目位于 ~/apps/tool
 - **版本与日期联动**：只要 `version` 发生变化，就必须更新 `versionUpdatedAt`（通常设为当天日期）。通过 MCP/API 更新时若只传 `version` 不传日期，系统会自动填当天。
 - 登记新工具前先用 `gallery_list_tools` 查重；若已存在则改为更新。
 - 用户说"发布/更新了版本"时，更新 `version` 与 `versionUpdatedAt`，并可顺带核对 `githubUrl`。
-- **封面**：通过 MCP/API 只能把 `cover` 设为现成的图片链接；上传图片、裁剪与 AI 生成（`POST /api/covers`、`POST /api/covers/generate`，均需令牌）是后台界面的能力——用户要求"生成/裁剪封面"时，引导他去后台操作，或在他给出图片链接时直接写入 `cover` 字段。
+- **封面**：通过 MCP/API 只能把 `cover` 设为现成的图片链接；上传图片、裁剪与 AI 生成（`POST /api/covers`、`POST /api/covers/generate`，均需令牌）是后台界面的能力——用户要求"生成/裁剪封面"时，引导他去后台操作，或在他给出图片链接时直接写入 `cover` 字段。AI 生成的 OpenAI 配置在后台「设置」页管理（`GET/PUT /api/settings`，密钥只写不读）。
 - `gallery_remove_tool` / `DELETE` 不可恢复，执行前必须向用户确认。
 - 用户没提供 `vibeCodingTool` 或 `model` 时，若本次就是你在协助开发，可填入当前工具与你自己的模型名；否则留空，不要编造。
 - `githubUrl` 必须是合法 URL；没有仓库就省略该字段，不要填空字符串以外的占位符。

@@ -36,6 +36,10 @@
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             查看前台
           </a>
+          <button id="settingsBtn" class="btn" title="设置">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            设置
+          </button>
           <button id="logoutBtn" class="btn">退出</button>
         </div>
       </div>
@@ -173,6 +177,50 @@
         <button type="button" id="cropCancelBtn" class="btn">跳过裁剪</button>
         <button type="button" id="cropConfirmBtn" class="btn btn-primary">应用裁剪</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 设置弹窗 -->
+  <div id="settingsBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" style="max-width:520px">
+      <h2 id="settingsTitle">设置</h2>
+      <form id="settingsForm">
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <fieldset class="form-field" style="border:1px solid var(--border);border-radius:12px;padding:14px">
+            <legend style="font-size:12.5px;color:var(--text-dim);padding:0 6px">AI 封面生成（OpenAI）</legend>
+            <div class="form-field">
+              <label for="s-apiKey">API Key</label>
+              <input id="s-apiKey" type="password" autocomplete="off" placeholder="sk-…" />
+              <span class="hint" id="apiKeyHint">未设置时使用环境变量 / Workers secret 中的 OPENAI_API_KEY</span>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-dim);cursor:pointer">
+                <input type="checkbox" id="s-clearKey" style="accent-color:var(--red)" /> 清除已保存的密钥
+              </label>
+            </div>
+            <div class="form-field">
+              <label for="s-baseUrl">Base URL（可选，用于代理/兼容端点）</label>
+              <input id="s-baseUrl" type="url" placeholder="https://api.openai.com/v1" />
+            </div>
+            <div class="form-field">
+              <label for="s-model">图像模型（可选）</label>
+              <input id="s-model" type="text" placeholder="gpt-image-1" />
+            </div>
+            <div class="form-field">
+              <label for="s-quality">生成质量（可选）</label>
+              <select id="s-quality" style="padding:10px 13px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:inherit">
+                <option value="">默认（medium）</option>
+                <option value="low">low（快、便宜）</option>
+                <option value="medium">medium</option>
+                <option value="high">high（慢、精细）</option>
+              </select>
+            </div>
+            <span class="hint">密钥只写不读：保存后无法在此查看完整值，只能覆盖或清空。页面配置优先于环境变量。</span>
+          </fieldset>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="settingsCancelBtn" class="btn">取消</button>
+          <button type="submit" class="btn btn-primary">保存设置</button>
+        </div>
+      </form>
     </div>
   </div>
 

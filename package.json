@@ -1,6 +1,6 @@
 {
   "name": "tool-gallery",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "个人工具集：卡片式展示自己做的工具程序，带封面、后台管理、MCP 与 skill，方便 AI 协助维护",
   "type": "module",
   "main": "src/server.js",

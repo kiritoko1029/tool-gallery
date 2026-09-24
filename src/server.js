@@ -22,7 +22,9 @@ import {
   fetchImageBytes,
   buildCoverPrompt,
   generateCoverImage,
+  resolveAiConfig,
 } from './cover-core.js';
+import { readSettings, updateSettings, settingsView } from './settings.js';
 
 const PORT = Number(process.env.PORT ?? 3927);
 const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
@@ -90,8 +92,20 @@ app.get('/api/summary', (_req, res) => res.json(summarize()));
 app.post('/api/auth/check', requireAuth, (_req, res) => res.json({ ok: true }));
 
 app.get('/api/features', requireAuth, (_req, res) =>
-  res.json({ aiCover: Boolean(process.env.OPENAI_API_KEY) })
+  res.json({ aiCover: Boolean(resolveAiConfig(readSettings(), process.env).apiKey) })
 );
+
+// 后台设置（AI 配置）：密钥只写不读，读取返回脱敏视图
+app.get('/api/settings', requireAuth, (_req, res) => res.json(settingsView()));
+
+app.put('/api/settings', requireAuth, (req, res, next) => {
+  try {
+    updateSettings(req.body ?? {});
+    res.json(settingsView());
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 封面上传：{image: dataURL} 或 {url: 外链} → 存入 data/covers/
 app.post('/api/covers', requireAuth, async (req, res, next) => {
@@ -108,19 +122,12 @@ app.post('/api/covers', requireAuth, async (req, res, next) => {
 // 封面 AI 生成：根据已填写的工具信息调用 OpenAI 图像模型
 app.post('/api/covers/generate', requireAuth, async (req, res, next) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(503).json({ error: '未配置 OPENAI_API_KEY，无法使用 AI 生成封面' });
+    const ai = resolveAiConfig(readSettings(), process.env);
+    if (!ai.apiKey) {
+      return res.status(503).json({ error: '未配置 OpenAI API Key：可在后台右上角「设置」中配置，或设置 OPENAI_API_KEY 环境变量' });
     }
     const prompt = buildCoverPrompt(req.body ?? {});
-    const image = await generateCoverImage(
-      {
-        apiKey: process.env.OPENAI_API_KEY,
-        baseUrl: process.env.OPENAI_BASE_URL,
-        model: process.env.OPENAI_IMAGE_MODEL,
-        quality: process.env.OPENAI_IMAGE_QUALITY,
-      },
-      prompt
-    );
+    const image = await generateCoverImage(ai, prompt);
     res.status(201).json({ cover: saveCover(image), prompt });
   } catch (err) {
     next(err);

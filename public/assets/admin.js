@@ -30,6 +30,18 @@ const cropResetBtn = document.getElementById('cropResetBtn');
 const cropCancelBtn = document.getElementById('cropCancelBtn');
 const cropConfirmBtn = document.getElementById('cropConfirmBtn');
 
+// 设置弹窗
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsBackdrop = document.getElementById('settingsBackdrop');
+const settingsForm = document.getElementById('settingsForm');
+const settingsCancelBtn = document.getElementById('settingsCancelBtn');
+const sApiKey = document.getElementById('s-apiKey');
+const sBaseUrl = document.getElementById('s-baseUrl');
+const sModel = document.getElementById('s-model');
+const sQuality = document.getElementById('s-quality');
+const sClearKey = document.getElementById('s-clearKey');
+const apiKeyHint = document.getElementById('apiKeyHint');
+
 const TOKEN_KEY = 'gallery_admin_token';
 const EMPTY_COVER_HINT = coverPreview.innerHTML;
 let token = localStorage.getItem(TOKEN_KEY) || '';
@@ -333,6 +345,63 @@ coverRemoveBtn.addEventListener('click', () => setCover(''));
 coverInput.addEventListener('input', () => renderCoverPreview());
 
 // ============================================================
+// 设置弹窗（AI 配置）
+// ============================================================
+function refreshAiFeature() {
+  return api('/api/features')
+    .then((f) => {
+      coverAiBtn.title = f.aiCover ? '根据程序名与简介生成封面' : '未配置 OpenAI API Key，点右上角「设置」配置';
+    })
+    .catch(() => {});
+}
+
+async function openSettings() {
+  settingsForm.reset();
+  try {
+    const s = await api('/api/settings');
+    sBaseUrl.value = s.openaiBaseUrl ?? '';
+    sModel.value = s.openaiImageModel ?? '';
+    sQuality.value = s.openaiImageQuality ?? '';
+    apiKeyHint.textContent = s.openaiApiKeySet
+      ? `已保存密钥（${s.openaiApiKeyPreview}），输入新值可覆盖`
+      : '未设置时使用环境变量 / Workers secret 中的 OPENAI_API_KEY';
+  } catch (err) {
+    toast(err.message, true);
+    return;
+  }
+  settingsBackdrop.classList.add('open');
+}
+
+function closeSettings() {
+  settingsBackdrop.classList.remove('open');
+}
+
+settingsBtn.addEventListener('click', openSettings);
+settingsCancelBtn.addEventListener('click', closeSettings);
+settingsBackdrop.addEventListener('click', (e) => {
+  if (e.target === settingsBackdrop) closeSettings();
+});
+
+settingsForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const patch = {};
+  const key = sApiKey.value.trim();
+  if (sClearKey.checked) patch.openaiApiKey = null;
+  else if (key) patch.openaiApiKey = key;
+  patch.openaiBaseUrl = sBaseUrl.value.trim() || null;
+  patch.openaiImageModel = sModel.value.trim() || null;
+  patch.openaiImageQuality = sQuality.value || null;
+  try {
+    await api('/api/settings', { method: 'PUT', body: JSON.stringify(patch) });
+    toast('设置已保存');
+    closeSettings();
+    refreshAiFeature();
+  } catch (err) {
+    toast(err.message, true);
+  }
+});
+
+// ============================================================
 // 列表 / 表单（原有逻辑）
 // ============================================================
 function logout() {
@@ -349,12 +418,7 @@ async function tryLogin(candidate) {
   loginGate.classList.add('hidden');
   adminApp.classList.remove('hidden');
   await refresh();
-  // AI 封面生成可用性提示
-  api('/api/features')
-    .then((f) => {
-      if (!f.aiCover) coverAiBtn.title = '未配置 OPENAI_API_KEY，AI 生成暂不可用';
-    })
-    .catch(() => {});
+  refreshAiFeature();
 }
 
 async function refresh() {
@@ -508,6 +572,7 @@ modalBackdrop.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (cropperBackdrop.classList.contains('open')) closeCropper(null);
+  else if (settingsBackdrop.classList.contains('open')) closeSettings();
   else closeModal();
 });
 logoutBtn.addEventListener('click', logout);
