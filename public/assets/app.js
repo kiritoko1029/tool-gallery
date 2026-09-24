@@ -71,14 +71,17 @@ function renderCard(tool, index) {
   const cover = tool.cover
     ? `<div class="card-cover">
         <img src="${escapeHtml(tool.cover)}" alt="${escapeHtml(tool.name)} 封面" loading="lazy" decoding="async" />
+        <div class="cover-fade" aria-hidden="true"></div>
         ${versionBadge(tool)}
-        ${icon ? `<span class="cover-icon" aria-hidden="true">${escapeHtml(icon)}</span>` : ''}
       </div>`
     : '';
 
   const header = tool.cover
     ? `<div class="card-top">
-        <div class="card-title-group"><span class="card-name">${escapeHtml(tool.name)}</span></div>
+        <div class="card-title-group">
+          <span class="card-icon card-icon-sm" aria-hidden="true">${escapeHtml(icon || '📦')}</span>
+          <span class="card-name">${escapeHtml(tool.name)}</span>
+        </div>
       </div>`
     : `<div class="card-top">
         <div class="card-title-group">
@@ -92,7 +95,7 @@ function renderCard(tool, index) {
     ${cover}
     <div class="card-body">
       ${header}
-      <p class="card-desc">${escapeHtml(tool.description)}</p>
+      <p class="card-desc" title="${escapeHtml(tool.description)}">${escapeHtml(tool.description)}</p>
       <div class="card-meta">
         ${metaItem('Vibecoding 工具', tool.vibeCodingTool)}
         ${metaItem('模型', tool.model)}
