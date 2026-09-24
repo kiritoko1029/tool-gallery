@@ -4,6 +4,9 @@ import { z } from 'zod';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// 封面允许两种来源：外部图片链接，或本站对象存储路径（本地 data/covers / 云端 R2）
+const COVER_RE = /^(https?:\/\/.+|\/covers\/[\w.-]+)$/;
+
 const emptyToUndef = (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 
 export const toolInputSchema = z.object({
@@ -11,6 +14,10 @@ export const toolInputSchema = z.object({
   description: z.string().trim().min(1, 'description 不能为空'),
   githubUrl: z.preprocess(emptyToUndef, z.string().url('githubUrl 必须是合法 URL').optional()),
   link: z.preprocess(emptyToUndef, z.string().url('link 必须是合法 URL').optional()),
+  cover: z.preprocess(
+    emptyToUndef,
+    z.string().regex(COVER_RE, 'cover 必须是 http(s) 链接或 /covers/ 路径').optional()
+  ),
   icon: z.preprocess(emptyToUndef, z.string().trim().max(8).optional()),
   tags: z.array(z.string().trim().min(1)).max(12).optional(),
   vibeCodingTool: z.preprocess(emptyToUndef, z.string().trim().max(60).optional()),

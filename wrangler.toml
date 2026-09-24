@@ -9,3 +9,8 @@ directory = "./public"
 [[kv_namespaces]]
 binding = "GALLERY_KV"
 id = "a3ef668fde4c41d5ab741449248d2318"
+
+# 封面图对象存储（/covers/* 由 Worker 从该 bucket 读取）
+[[r2_buckets]]
+binding = "COVERS"
+bucket_name = "tool-gallery-covers"

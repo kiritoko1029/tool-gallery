@@ -4,10 +4,19 @@
 import { ZodError } from 'zod';
 import { createKVStore } from './kv-store.js';
 import { handleMcpMessage } from '../src/mcp-tools.js';
+import {
+  CoverError,
+  newCoverKey,
+  parseDataUrl,
+  fetchImageBytes,
+  buildCoverPrompt,
+  generateCoverImage,
+} from '../src/cover-core.js';
 
 const CLEARABLE_FIELDS = [
   'githubUrl',
   'link',
+  'cover',
   'icon',
   'tags',
   'vibeCodingTool',
@@ -89,7 +98,45 @@ async function handleApi(request, env, url) {
 
   if (method === 'POST' && path === '/api/auth/check') return json({ ok: true });
 
+  if (method === 'GET' && path === '/api/features') {
+    return json({ aiCover: Boolean(env.OPENAI_API_KEY) });
+  }
+
+  // 外链图片代理（后台裁剪外部图片时绕过浏览器 CORS）
+  if (method === 'GET' && path === '/api/proxy-image') {
+    try {
+      const { bytes, contentType } = await fetchImageBytes(url.searchParams.get('url') ?? '');
+      return new Response(bytes, { headers: { 'Content-Type': contentType } });
+    } catch (err) {
+      if (err instanceof CoverError) return json({ error: err.message }, 422);
+      throw err;
+    }
+  }
+
   try {
+    if (method === 'POST' && path === '/api/covers') {
+      const { image, url } = await readBody(request);
+      const material = image ? parseDataUrl(image) : url ? await fetchImageBytes(url) : null;
+      if (!material) return json({ error: '需要 image（dataURL）或 url 字段' }, 400);
+      return json({ cover: await saveCover(env, material) }, 201);
+    }
+    if (method === 'POST' && path === '/api/covers/generate') {
+      if (!env.OPENAI_API_KEY) {
+        return json({ error: '未配置 OPENAI_API_KEY（npx wrangler secret put OPENAI_API_KEY）' }, 503);
+      }
+      const body = await readBody(request);
+      const prompt = buildCoverPrompt(body);
+      const image = await generateCoverImage(
+        {
+          apiKey: env.OPENAI_API_KEY,
+          baseUrl: env.OPENAI_BASE_URL,
+          model: env.OPENAI_IMAGE_MODEL,
+          quality: env.OPENAI_IMAGE_QUALITY,
+        },
+        prompt
+      );
+      return json({ cover: await saveCover(env, image), prompt }, 201);
+    }
     if (method === 'POST' && path === '/api/tools') {
       return json(await store.create(await readBody(request)), 201);
     }
@@ -111,9 +158,31 @@ async function handleApi(request, env, url) {
     }
   } catch (err) {
     if (err instanceof ZodError) return zodFailure(err);
+    if (err instanceof CoverError) return json({ error: err.message }, 422);
     throw err;
   }
   return notFound();
+}
+
+// 封面图存入 R2，返回站内路径
+async function saveCover(env, { bytes, ext, contentType }) {
+  const key = newCoverKey(ext);
+  await env.COVERS.put(key, bytes, { httpMetadata: { contentType } });
+  return `/covers/${key}`;
+}
+
+// 封面图（R2 对象存储，公开读）
+async function handleCover(url, env) {
+  const key = decodeURIComponent(url.pathname.slice('/covers/'.length));
+  if (!/^[\w.-]+$/.test(key)) return json({ error: '非法封面路径' }, 400);
+  const object = await env.COVERS.get(key);
+  if (!object) return json({ error: '封面不存在' }, 404);
+  return new Response(object.body, {
+    headers: {
+      'Content-Type': object.httpMetadata?.contentType ?? 'image/webp',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  });
 }
 
 const corsHeaders = {
@@ -148,6 +217,7 @@ export default {
     try {
       if (url.pathname === '/mcp') return await handleMcp(request, env);
       if (url.pathname.startsWith('/api/')) return await handleApi(request, env, url);
+      if (url.pathname.startsWith('/covers/')) return await handleCover(url, env);
       // 其余路径交给静态资源（public/）；/admin 由 assets 的 clean-URL 行为映射到 admin.html
       return await env.ASSETS.fetch(request);
     } catch (err) {

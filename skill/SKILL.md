@@ -1,18 +1,18 @@
 ---
 name: tool-gallery
-description: 维护用户的个人工具画廊（Tool Gallery，位于 ~/apps/tool-gallary）——一个以卡片展示用户开发的工具程序的网站。当用户要求登记/收录新做的工具、更新某个工具的信息或版本、下架工具、查询画廊里有什么、或同步 GitHub 仓库信息到画廊时使用。优先使用 tool-gallery MCP server 提供的工具操作。
+description: 维护用户的个人工具集（Toolset，项目位于 ~/apps/tool-gallary）——一个以卡片展示用户开发的工具程序的网站。当用户要求登记/收录新做的工具、更新某个工具的信息、版本或封面、下架工具、查询工具集里有什么、或同步 GitHub 仓库信息时使用。优先使用 tool-gallery MCP server 提供的工具操作。
 ---
 
-# Tool Gallery
+# Tool Gallery（工具集）
 
-用户的个人工具画廊：以卡片形式展示他自己开发的工具程序。本项目位于 `~/apps/tool-gallary`。
+用户的个人工具集：以卡片形式展示他自己开发的工具程序。本项目位于 `~/apps/tool-gallary`。
 
 两个运行实例：
 
-- **本地实例**：数据在 `~/apps/tool-gallary/data/tools.json`，Web 服务默认端口 `3927`（画廊 `/`，后台 `/admin`）。
-- **云端实例**（Cloudflare Workers）：`https://tool-gallery.1794130477.workers.dev`，后台在 `/admin`，MCP 端点在 `/mcp`，数据存 Cloudflare KV。
+- **本地实例**：数据在 `~/apps/tool-gallary/data/tools.json`，封面图在 `~/apps/tool-gallary/data/covers/`，Web 服务默认端口 `3927`（前台 `/`，后台 `/admin`）。
+- **云端实例**（Cloudflare Workers）：`https://tool-gallery.1794130477.workers.dev`，后台在 `/admin`，MCP 端点在 `/mcp`，数据存 Cloudflare KV，封面图存 R2。
 
-用户说"画廊"时如果上下文是关于线上网站、访问者能看到的内容，操作云端实例；关于本地开发/调试时操作本地实例。不确定时先问。
+用户说"工具集/画廊"时如果上下文是关于线上网站、访问者能看到的内容，操作云端实例；关于本地开发/调试时操作本地实例。不确定时先问。
 
 ## 操作方式（按优先级）
 
@@ -26,6 +26,7 @@ description: 维护用户的个人工具画廊（Tool Gallery，位于 ~/apps/to
 |---|---|---|
 | `name` | 是 | 程序名 |
 | `description` | 是 | 一句话简介 |
+| `cover` | 否 | 封面图：外部图片链接（https://…）或站内对象存储路径（/covers/…，16:9） |
 | `githubUrl` | 否 | GitHub 仓库地址；没有就省略 |
 | `link` | 否 | 在线体验/主页地址 |
 | `icon` | 否 | 一个 emoji，作为卡片图标 |
@@ -42,7 +43,8 @@ description: 维护用户的个人工具画廊（Tool Gallery，位于 ~/apps/to
 - **版本与日期联动**：只要 `version` 发生变化，就必须更新 `versionUpdatedAt`（通常设为当天日期）。通过 MCP/API 更新时若只传 `version` 不传日期，系统会自动填当天。
 - 登记新工具前先用 `gallery_list_tools` 查重；若已存在则改为更新。
 - 用户说"发布/更新了版本"时，更新 `version` 与 `versionUpdatedAt`，并可顺带核对 `githubUrl`。
+- **封面**：通过 MCP/API 只能把 `cover` 设为现成的图片链接；上传图片、裁剪与 AI 生成（`POST /api/covers`、`POST /api/covers/generate`，均需令牌）是后台界面的能力——用户要求"生成/裁剪封面"时，引导他去后台操作，或在他给出图片链接时直接写入 `cover` 字段。
 - `gallery_remove_tool` / `DELETE` 不可恢复，执行前必须向用户确认。
 - 用户没提供 `vibeCodingTool` 或 `model` 时，若本次就是你在协助开发，可填入当前工具与你自己的模型名；否则留空，不要编造。
 - `githubUrl` 必须是合法 URL；没有仓库就省略该字段，不要填空字符串以外的占位符。
-- **本地与云端数据相互独立**：本地改动后如需上线，用 `npm run kv:push` 推送数据（代码改动用 `npm run deploy`）；云端后台/云端 MCP 的改动不会自动回流本地，需要时用 `npm run kv:pull` 拉回来。
+- **本地与云端数据相互独立**：本地改动后如需上线，用 `npm run kv:push` 推送数据（代码改动用 `npm run deploy`，封面上传用 `npm run covers:push`）；云端的改动不会自动回流本地，需要时用 `npm run kv:pull` 拉回来。

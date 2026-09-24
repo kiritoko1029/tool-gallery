@@ -11,6 +11,10 @@ const toolProperties = {
   description: { type: 'string', minLength: 1, description: '一句话简介' },
   githubUrl: { type: 'string', format: 'uri', description: 'GitHub 仓库地址；没有就省略' },
   link: { type: 'string', format: 'uri', description: '在线体验 / 主页地址；没有就省略' },
+  cover: {
+    type: 'string',
+    description: '封面图：外部图片链接（https://…）或本站对象存储路径（/covers/…）；没有就省略',
+  },
   icon: { type: 'string', maxLength: 8, description: '一个 emoji 作为卡片图标，如 🛠️' },
   tags: {
     type: 'array',
@@ -34,6 +38,7 @@ const toolProperties = {
 const CLEARABLE_FIELDS = [
   'githubUrl',
   'link',
+  'cover',
   'icon',
   'tags',
   'vibeCodingTool',

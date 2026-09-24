@@ -15,10 +15,26 @@ import {
   clearField,
   summarize,
 } from './store.js';
+import {
+  CoverError,
+  newCoverKey,
+  parseDataUrl,
+  fetchImageBytes,
+  buildCoverPrompt,
+  generateCoverImage,
+} from './cover-core.js';
 
 const PORT = Number(process.env.PORT ?? 3927);
 const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
 const TOKEN_FILE = path.join(DATA_DIR, '.admin-token');
+const COVERS_DIR = path.join(DATA_DIR, 'covers');
+
+function saveCover({ bytes, ext }) {
+  fs.mkdirSync(COVERS_DIR, { recursive: true });
+  const key = newCoverKey(ext);
+  fs.writeFileSync(path.join(COVERS_DIR, key), Buffer.from(bytes), { mode: 0o644 });
+  return `/covers/${key}`;
+}
 
 function loadAdminToken() {
   if (process.env.GALLERY_ADMIN_TOKEN) {
@@ -50,7 +66,7 @@ function requireAuth(req, res, next) {
 }
 
 const app = express();
-app.use(express.json({ limit: '256kb' }));
+app.use(express.json({ limit: '12mb' })); // 封面图为 base64，需要较大上限
 
 // ---- 公开 API ----
 app.get('/api/health', (_req, res) => res.json({ ok: true, name: 'tool-gallery' }));
@@ -73,6 +89,54 @@ app.get('/api/summary', (_req, res) => res.json(summarize()));
 // ---- 管理 API（需要令牌）----
 app.post('/api/auth/check', requireAuth, (_req, res) => res.json({ ok: true }));
 
+app.get('/api/features', requireAuth, (_req, res) =>
+  res.json({ aiCover: Boolean(process.env.OPENAI_API_KEY) })
+);
+
+// 封面上传：{image: dataURL} 或 {url: 外链} → 存入 data/covers/
+app.post('/api/covers', requireAuth, async (req, res, next) => {
+  try {
+    const { image, url } = req.body ?? {};
+    const material = image ? parseDataUrl(image) : url ? await fetchImageBytes(url) : null;
+    if (!material) return res.status(400).json({ error: '需要 image（dataURL）或 url 字段' });
+    res.status(201).json({ cover: saveCover(material) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 封面 AI 生成：根据已填写的工具信息调用 OpenAI 图像模型
+app.post('/api/covers/generate', requireAuth, async (req, res, next) => {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({ error: '未配置 OPENAI_API_KEY，无法使用 AI 生成封面' });
+    }
+    const prompt = buildCoverPrompt(req.body ?? {});
+    const image = await generateCoverImage(
+      {
+        apiKey: process.env.OPENAI_API_KEY,
+        baseUrl: process.env.OPENAI_BASE_URL,
+        model: process.env.OPENAI_IMAGE_MODEL,
+        quality: process.env.OPENAI_IMAGE_QUALITY,
+      },
+      prompt
+    );
+    res.status(201).json({ cover: saveCover(image), prompt });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 外链图片代理（后台裁剪外部图片时绕过浏览器 CORS）
+app.get('/api/proxy-image', requireAuth, async (req, res, next) => {
+  try {
+    const { bytes, contentType } = await fetchImageBytes(req.query.url ?? '');
+    res.set('Content-Type', contentType).send(Buffer.from(bytes));
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/api/tools', requireAuth, async (req, res, next) => {
   try {
     res.status(201).json(await createTool(req.body ?? {}));
@@ -93,7 +157,7 @@ app.put('/api/tools/:id', requireAuth, async (req, res, next) => {
 
 // 显式清空某个可选字段（PUT 语义里 undefined 表示不动它）
 app.delete('/api/tools/:id/field/:field', requireAuth, async (req, res, next) => {
-  const allowed = ['githubUrl', 'link', 'icon', 'tags', 'vibeCodingTool', 'model', 'version', 'versionUpdatedAt'];
+  const allowed = ['githubUrl', 'link', 'cover', 'icon', 'tags', 'vibeCodingTool', 'model', 'version', 'versionUpdatedAt'];
   if (!allowed.includes(req.params.field)) {
     return res.status(400).json({ error: `不允许清空的字段：${req.params.field}` });
   }
@@ -121,6 +185,17 @@ app.delete('/api/tools/:id', requireAuth, async (req, res, next) => {
 app.get('/admin', (_req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
 app.use(express.static(PUBLIC_DIR));
 
+// 封面图（本地对象存储 data/covers/）
+app.get('/covers/:key', (req, res) => {
+  const key = path.basename(req.params.key); // 防目录穿越
+  const file = path.join(COVERS_DIR, key);
+  if (!/^[\w.-]+$/.test(key) || !fs.existsSync(file)) {
+    return res.status(404).json({ error: '封面不存在' });
+  }
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  res.sendFile(file);
+});
+
 // ---- 统一错误处理 ----
 app.use((err, _req, res, _next) => {
   if (err instanceof ZodError) {
@@ -129,13 +204,16 @@ app.use((err, _req, res, _next) => {
       details: err.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`),
     });
   }
+  if (err instanceof CoverError) {
+    return res.status(422).json({ error: err.message });
+  }
   console.error(err);
   res.status(500).json({ error: '服务器内部错误' });
 });
 
 app.listen(PORT, () => {
-  console.log(`工具画廊已启动:  http://localhost:${PORT}`);
-  console.log(`后台管理:        http://localhost:${PORT}/admin`);
+  console.log(`工具集已启动:  http://localhost:${PORT}`);
+  console.log(`后台管理:      http://localhost:${PORT}/admin`);
   console.log(`管理员令牌来源:  ${tokenSource}`);
   console.log(`管理员令牌:      ${ADMIN_TOKEN}`);
 });

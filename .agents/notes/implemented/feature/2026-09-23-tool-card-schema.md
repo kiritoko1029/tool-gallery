@@ -8,7 +8,7 @@ Status: implemented
 
 ## Decision
 
-数据模型（`src/store.js` 的 `toolInputSchema`，zod 校验）：必填仅 `name` 与 `description`；可选字段为 `githubUrl`、`link`、`icon`（单个 emoji）、`tags`、`vibeCodingTool`、`model`、`version`、`versionUpdatedAt`。可选字段的空字符串在入口处归一化为"不存在"，数据库中不存空串。`versionUpdatedAt` 强制 `YYYY-MM-DD`。系统字段 `id`（由名称生成的 slug，冲突时追加序号）、`createdAt`、`updatedAt` 由存储层维护。**版本-日期联动**：`updateTool` 发现 `version` 变化而调用方未提供 `versionUpdatedAt` 时，自动将其设为当天日期。该规则同时体现在 MCP 工具描述与 skill 文档中，使 AI 操作者无需记忆此约定。
+数据模型（`src/tools-core.js` 的 `toolInputSchema`，zod 校验）：必填仅 `name` 与 `description`；可选字段为 `githubUrl`、`link`、`cover`（封面图，外链或 `/covers/` 站内路径，详见[封面功能笔记](../../implemented/feature/2026-09-24-tool-covers.md)）、`icon`（单个 emoji）、`tags`、`vibeCodingTool`、`model`、`version`、`versionUpdatedAt`。可选字段的空字符串在入口处归一化为"不存在"，数据库中不存空串。`versionUpdatedAt` 强制 `YYYY-MM-DD`。系统字段 `id`（由名称生成的 slug，冲突时追加序号）、`createdAt`、`updatedAt` 由存储层维护。**版本-日期联动**：`updateTool` 发现 `version` 变化而调用方未提供 `versionUpdatedAt` 时，自动将其设为当天日期。该规则同时体现在 MCP 工具描述与 skill 文档中，使 AI 操作者无需记忆此约定。
 
 ## Alternatives considered
 
