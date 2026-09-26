@@ -3,46 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>工具集</title>
-  <meta name="description" content="我用 vibecoding 方式打造的工具程序合集" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧰</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <meta name="theme-color" content="#101211" />
+  <title>工具集 · 把灵感变成好用的工具</title>
+  <meta name="description" content="探索独立开发的工具程序，发现每个作品背后的 AI 工具、模型与创作故事。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23c5f4a1'/%3E%3Cpath d='M19 20h26v8H35v21h-8V28h-8z' fill='%23101211'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="/assets/gallery.css" />
 </head>
-<body>
+<body class="gallery-page">
+  <a class="skip-link" href="#collection">跳到工具列表</a>
   <div class="container">
-    <header class="site-header">
-      <div class="header-row">
-        <div>
-          <div class="eyebrow">Toolset</div>
-          <h1>
-            <span class="logo-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6.36 6.36l-5.6 5.6a2 2 0 1 0 2.83 2.83l5.6-5.6a4.5 4.5 0 0 0 6.36-6.36l-2.83 2.83-2.12-2.12 2.83-2.83z" transform="translate(2.5 -1)"/><path d="m9 15 6.5-6.5"/></svg>
-            </span>
-            工具集
-          </h1>
-          <p class="subtitle">我用 vibecoding 方式打造的工具程序——每张卡片记录了它由什么 AI 工具和模型塑造。</p>
-        </div>
-      </div>
-      <div class="toolbar">
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="searchInput" type="search" placeholder="搜索名称、简介、标签、工具或模型…" autocomplete="off" aria-label="搜索工具" />
-        </div>
-        <div class="tag-filter" id="tagFilter"></div>
-      </div>
+    <header class="topbar">
+      <a href="/" class="brand" aria-label="工具集首页">
+        <svg class="brand-symbol" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 6h22v7h-7v14h-8V13H5z" fill="currentColor"/></svg>
+        <span>toolset<span class="brand-dot">.</span></span>
+        <span class="brand-caption">个人工具集</span>
+      </a>
+      <nav class="top-nav" aria-label="主导航">
+        <a href="#collection" class="nav-explore">探索工具</a>
+        <a href="/admin" class="nav-admin">管理后台 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+      </nav>
     </header>
-
-    <main id="gallery" class="gallery-grid" aria-live="polite"></main>
-
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-copy">
+        <h1 id="heroTitle">让灵感落地，<br /><span>让工具趁手。</span></h1>
+        <p>一些灵光一现，一些认真打磨。<br />这里收藏着我与 AI 一起造出的实用小工具。</p>
+        <a class="hero-link" href="#collection">发现我的工具 <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6"/></svg></span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-halo"></div>
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="art-stage">
+          <div class="glass-tile tile-back"></div><div class="glass-tile tile-middle"></div>
+          <div class="glass-tile tile-front"><svg viewBox="0 0 100 100" fill="none"><path d="M21 23h58v18H60v39H40V41H21z" fill="currentColor"/></svg></div>
+        </div>
+        <div class="art-satellite satellite-code"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m11 10-6 6 6 6m10-12 6 6-6 6M18 7l-4 18"/></svg></div>
+        <div class="art-satellite satellite-spark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="m16 4 3.5 8.5L28 16l-8.5 3.5L16 28l-3.5-8.5L4 16l8.5-3.5z"/></svg></div>
+        <span class="art-point point-one"></span><span class="art-point point-two"></span>
+      </div>
+    </section>
+    <main id="collection" class="collection" tabindex="-1">
+      <div class="collection-heading">
+        <div class="collection-title"><h2>工具陈列室</h2><span id="collectionCount" class="collection-count">—</span></div>
+        <span class="collection-note">为好奇心而造，为日常所用。</span>
+      </div>
+      <div class="collection-controls">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+          <input id="searchInput" type="search" placeholder="搜索工具、灵感、关键词…" autocomplete="off" aria-label="搜索工具" aria-controls="gallery" />
+          <kbd aria-hidden="true">/</kbd>
+        </div>
+        <label class="sort-control"><span>排序</span><select id="sortSelect" aria-label="工具排序"><option value="default">默认排序</option><option value="updated">最近更新</option><option value="name">名称 A–Z</option></select></label>
+      </div>
+      <div class="filter-row">
+        <div class="tag-filter" id="tagFilter" role="group" aria-label="按标签筛选"></div>
+        <button id="moreTags" class="more-tags" type="button" aria-expanded="false" aria-controls="tagFilter" hidden>更多标签</button>
+      </div>
+      <p id="resultStatus" class="sr-only" role="status" aria-live="polite"></p>
+      <div id="gallery" class="gallery-grid" aria-busy="true"></div>
+    </main>
     <footer class="footer">
+      <div><a class="footer-brand" href="#">toolset.</a><span>好工具，让想法多走一步。</span></div>
       <span id="footCount"></span>
-      <span>由 tool-gallery 驱动 · AI 可通过 MCP / REST API 维护本工具集</span>
     </footer>
   </div>
-
   <script type="module" src="/assets/app.js"></script>
 </body>
 </html>
